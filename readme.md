@@ -14,3 +14,8 @@
     API可选文档：http://127.0.0.1:8000/redoc
 
     API原始数据：http://127.0.0.1:8000/openapi.json
+
+
+## 导出依赖
+
+    pip list --format=freeze >requirement.txt
