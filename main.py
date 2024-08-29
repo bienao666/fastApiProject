@@ -1,15 +1,53 @@
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
+from typing import List  # 用于定义对象数组
 
-from typing import List#用于定义对象数组
-
+from starlette.responses import JSONResponse
+from starlette.staticfiles import StaticFiles
 from sql_app import crud, models, schemas
 from sql_app.database import SessionLocal, engine
 
-#在数据库中生成表结构
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import PlainTextResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+app = FastAPI(
+    title='项目名称',
+    description='描述',
+    version='1.0.0'
+)
+
+# mount表示将某个目录下一个完全独立的应用挂载过来
+app.mount('/static', StaticFiles(directory='./static'), name='static')
+
+
+# # 重写HTTPException异常处理器
+# @app.exception_handlers(StarletteHTTPException)
+# async def http_exception_handler(request, exc):
+#     """
+#
+#     :param request:
+#     :param exc:
+#     :return:
+#     """
+#     return PlainTextResponse(str(exc.detail), status_code=exc.status_code)
+#
+#
+# # 重写HTTPException异常处理器
+# @app.exception_handlers(RequestValidationError)
+# async def validation_exception_handler(request, exc):
+#     """
+#
+#     :param request:
+#     :param exc:
+#     :return:
+#     """
+#     return PlainTextResponse(str(exc.detail), status_code=exc.status_code)
+
+
+# 在数据库中生成表结构
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
 
 # Dependency
 def get_db():
@@ -18,7 +56,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
 
 
 @app.get("/")
@@ -65,6 +102,8 @@ def read_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     items = crud.get_items(db, skip=skip, limit=limit)
     return items
 
+
 if __name__ == '__main__':
     import uvicorn
+
     uvicorn.run(app, host="127.0.0.1", port=8000)
